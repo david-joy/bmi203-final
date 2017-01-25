@@ -1,17 +1,15 @@
-# HW2 Skeleton
+# BMI 203 - Final Project
 
 [![Build
-Status](https://travis-ci.org/ucsf-bmi-203-2017/hw2-skeleton.svg?branch=master)](https://travis-ci.org/ucsf-bmi-203-2017/hw2-skeleton)
+Status](https://travis-ci.org/david-joy/bmi203-final.svg?branch=master)](https://travis-ci.org/david-joy/bmi203-final)
 
-Skeleton for clustering project.
+David Joy 3/24/2017<br/>
+
+Final Project
 
 ## assignment
 
-1. Implement a similarity metric
-2. Implement a clustering method based on a partitioning algorithm
-3. Implement a clustering method based on a hierarchical algorithm
-4. Answer the questions given in the homework assignment
-
+Implement a machine learning algorithm that can distinguish real binding sites of a transcription factor from other sequences.
 
 ## structure
 
@@ -22,7 +20,7 @@ The main file that you will need to modify is `cluster.py` and the corresponding
 ├── README.md
 ├── data
 │   ...
-├── hw2skeleton
+├── final_project
 │   ├── __init__.py
 │   ├── __main__.py
 │   ├── cluster.py
@@ -42,11 +40,11 @@ conda install --yes --file requirements.txt
 ```
 
 to install all the dependencies in `requirements.txt`. Then the package's
-main function (located in `hw2skeleton/__main__.py`) can be run as
+main function (located in `final_project/__main__.py`) can be run as
 follows
 
 ```
-python -m hw2skeleton -P data test.txt
+python -m final_project -P data test.txt
 ```
 
 ## testing
