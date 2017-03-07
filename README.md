@@ -9,11 +9,11 @@ Final Project
 
 ## assignment
 
-Implement a machine learning algorithm that can distinguish real binding sites of a transcription factor from other sequences.
+You are to construct a machine learning system that will distinguish real binding sites of a transcription factor (RAP1) from other sequences. The standard methodology for learning and representing TF binding sites is based on positive data (examples of known binding sites of a TF) alone. One generally constructs a linear position weight matrix based on the positive examples along with some model of the background probabilities of observing various sequences. There are limitations with this method, among them being that the linear model cannot address interdependencies among the different positions in the TF motif. There are cases where people have identified TF motifs where positional interdependencies exist. Interestingly, some of these cases are isomorphic to the XOR problem that killed perceptrons a few decades ago. Your work will address this problem as well as provide a way around the explicit requirement of a background model for sequence probabilities.
 
 ## structure
 
-The main file that you will need to modify is `cluster.py` and the corresponding `test_cluster.py`. `utils.py` contains helpful classes that you can use to represent Active Sites. `io.py` contains some reading and writing files for interacting with PDB files and writing out cluster info.
+`io.py` contains tools to read the data files and write out scores.
 
 ```
 .
@@ -22,12 +22,9 @@ The main file that you will need to modify is `cluster.py` and the corresponding
 │   ...
 ├── final_project
 │   ├── __init__.py
-│   ├── __main__.py
-│   ├── cluster.py
 │   ├── io.py
 │   └── utils.py
 └── test
-    ├── test_cluster.py
     └── test_io.py
 ```
 
