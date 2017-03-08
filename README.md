@@ -13,7 +13,7 @@ You are to construct a machine learning system that will distinguish real bindin
 
 ## structure
 
-`io.py` contains tools to read the data files and write out scores.
+`model.py` contains the main neural network container class that assembles the layers found in `layers.py`. `io.py` contains tools to read the data files and write out scores.
 
 ```
 .
@@ -22,9 +22,12 @@ You are to construct a machine learning system that will distinguish real bindin
 │   ...
 ├── final_project
 │   ├── __init__.py
-│   ├── io.py
-│   └── utils.py
+│   ├── model.py
+│   ├── layers.py
+│   └── io.py
 └── test
+    ├── test_model.py
+    ├── test_layers.py
     └── test_io.py
 ```
 
