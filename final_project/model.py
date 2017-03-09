@@ -56,7 +56,7 @@ class Model(object):
             x = layer.predict(x)
         return x
 
-    def gradient_descent(self, x, y, learn_rate=0.1, decay=0.0):
+    def gradient_descent(self, x, y, learn_rate=0.1, weight_decay=0.0):
         """ Implement gradient descent """
         if x.ndim == 1:
             x = x[:, np.newaxis]
@@ -68,12 +68,13 @@ class Model(object):
         delta1 = self.layers[-1].calc_error(y)
         self.layers[-1].update_weights(delta1,
                                        learn_rate=learn_rate,
-                                       decay=decay)
+                                       weight_decay=weight_decay)
 
         for layer in reversed(self.layers[:-1]):
             delta0 = layer.calc_delta(delta1)
-            layer.update_weights(delta0, learn_rate=learn_rate, decay=decay)
-
+            layer.update_weights(delta0,
+                                 learn_rate=learn_rate,
+                                 weight_decay=weight_decay)
             delta1 = delta0
         return np.sum((yhat - y)**2)
 

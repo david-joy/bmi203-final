@@ -27,10 +27,23 @@ def sigmoid(x):
     return y
 
 
-def sigmoid_prime(y):
+def sigmoid_prime(z):
     # Derivative of the logistic function
     # Note that this is in terms of y, not x
-    return y * (1 - y)
+    f = sigmoid(z)
+    return f * (1 - f)
+
+
+def relu(x):
+    # Rectified linear unit
+    f = x.copy()
+    f[f < 0] = 0
+    return f
+
+
+def relu_prime(z):
+    return (z >= 0).astype(np.float32)
+
 
 # Classes
 
@@ -65,9 +78,11 @@ class FullyConnected(Layer):
 
     activations = {
         'sigmoid': sigmoid,
+        'relu': relu,
     }
     gradients = {
         'sigmoid': sigmoid_prime,
+        'relu': relu_prime,
     }
 
     def __init__(self, size, func):
@@ -161,19 +176,19 @@ class FullyConnected(Layer):
     def calc_error(self, ytarget):
         if ytarget.ndim == 1:
             ytarget = ytarget[:, np.newaxis]
-        return (self.a - ytarget) * self.gradient(self.a)
+        return (self.a - ytarget) * self.gradient(self.z)
 
     def calc_delta(self, delta):
         """ Calculate the update """
-        return (self.weight @ delta) * self.gradient(self.a)
+        return (self.weight @ delta) * self.gradient(self.z)
 
-    def update_weights(self, delta, learn_rate=1.0, decay=0.0):
+    def update_weights(self, delta, learn_rate=1.0, weight_decay=0.0):
         """ Calculate the weight update """
 
         delta_weight = self.a.T @ delta
         delta_bias = delta
 
-        self.weight -= learn_rate * (delta_weight + decay * self.weight)
+        self.weight -= learn_rate * (delta_weight + weight_decay * self.weight)
         self.bias -= learn_rate * delta_bias
 
 

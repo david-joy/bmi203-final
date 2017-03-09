@@ -38,7 +38,7 @@ def test_can_read_write_weights():
     autoenc.init_weights()
 
     x = np.array([0, 1, 0, 0, 0, 0, 0, 0])
-    autoenc.gradient_descent(x, x, learn_rate=0.5, decay=0.0)
+    autoenc.gradient_descent(x, x, learn_rate=0.5, weight_decay=0.0)
 
     with tempfile.TemporaryDirectory() as tempdir:
         weightfile = pathlib.Path(tempdir) / 'weights.npz'
@@ -110,7 +110,7 @@ def test_one_step_forward_backward():
     np.testing.assert_almost_equal(yhat, exp_y2)
 
     # Now do gradient descent
-    err = net.gradient_descent(x, ytarget, learn_rate=0.5, decay=0.0)
+    err = net.gradient_descent(x, ytarget, learn_rate=0.5, weight_decay=0.0)
 
     assert round(err, 4) == 0.5967
 
