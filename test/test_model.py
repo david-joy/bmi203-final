@@ -22,9 +22,40 @@ def test_create_read_write_model():
         modelfile = pathlib.Path(tempdir) / 'model.json'
 
         autoenc.save_model(modelfile)
+
+        assert modelfile.is_file()
+
         res_autoenc = model.Model.load_model(modelfile)
 
         assert res_autoenc == autoenc
+
+
+def test_can_read_write_weights():
+
+    autoenc = model.Model('3-8-3 Autoencoder', input_size=8)
+    autoenc.add_layer(layers.FullyConnected(size=3, func='sigmoid'))
+    autoenc.add_layer(layers.FullyConnected(size=8, func='sigmoid'))
+    autoenc.init_weights()
+
+    x = np.array([0, 1, 0, 0, 0, 0, 0, 0])
+    autoenc.gradient_descent(x, x, learn_rate=0.5, decay=0.0)
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        weightfile = pathlib.Path(tempdir) / 'weights.npz'
+
+        autoenc.save_weights(weightfile)
+
+        assert weightfile.is_file()
+
+        res_autoenc = model.Model('3-8-3 Autoencoder', input_size=8)
+        res_autoenc.add_layer(layers.FullyConnected(size=3, func='sigmoid'))
+        res_autoenc.add_layer(layers.FullyConnected(size=8, func='sigmoid'))
+
+        res_autoenc.load_weights(weightfile)
+
+        for exp_layer, res_layer in zip(autoenc.layers, res_autoenc.layers):
+            np.testing.assert_almost_equal(exp_layer.weight, res_layer.weight)
+            np.testing.assert_almost_equal(exp_layer.bias, res_layer.bias)
 
 
 def test_one_step_forward_backward():
@@ -78,28 +109,25 @@ def test_one_step_forward_backward():
 
     np.testing.assert_almost_equal(yhat, exp_y2)
 
-    # Now do stepwise backprop
-    delta2 = layer2.calc_error(ytarget)
-    layer2.update_weights(delta2, learn_rate=0.5)
+    # Now do gradient descent
+    err = net.gradient_descent(x, ytarget, learn_rate=0.5, decay=0.0)
+
+    assert round(err, 4) == 0.5967
 
     exp_weight = np.array([
         [0.3626921, 0.4126921],
         [0.4626921, 0.5126921],
     ])
-
     exp_bias = np.array([[0.53075072], [0.61904912]])
 
     np.testing.assert_almost_equal(exp_weight, layer2.weight)
     np.testing.assert_almost_equal(exp_bias, layer2.bias)
 
-    delta1 = layer1.calc_delta(delta2)
-    layer1.update_weights(delta1, learn_rate=0.5)
-
     exp_weight = np.array([
-        [0.1480264, 0.1980264],
-        [0.2480264, 0.2980264],
+        [0.1473928, 0.1973928],
+        [0.2473928, 0.2973928],
     ])
-    exp_bias = np.array([[0.3486427], [0.3480426]])
+    exp_bias = np.array([[0.3484128], [0.3472095]])
 
     np.testing.assert_almost_equal(exp_weight, layer1.weight)
     np.testing.assert_almost_equal(exp_bias, layer1.bias)

@@ -107,9 +107,10 @@ class FullyConnected(Layer):
         self.weight = np.random.uniform(low=-WEIGHT_INIT_SCALE,
                                         high=WEIGHT_INIT_SCALE,
                                         size=(self.size, prev_size))
+
         self.bias = np.random.uniform(low=-WEIGHT_INIT_SCALE,
                                       high=WEIGHT_INIT_SCALE,
-                                      size=(self.size, ))
+                                      size=(self.size, 1))
 
     def set_weights(self, weight, bias):
         """ Set the weights to given values
@@ -152,6 +153,7 @@ class FullyConnected(Layer):
         """
         if x.ndim == 1:
             x = x[:, np.newaxis]
+
         self.z = self.weight @ x + self.bias
         self.a = self.activation(self.z)
         return self.a
@@ -163,7 +165,7 @@ class FullyConnected(Layer):
 
     def calc_delta(self, delta):
         """ Calculate the update """
-        return (self.weight.T @ delta) * self.gradient(self.a)
+        return (self.weight @ delta) * self.gradient(self.a)
 
     def update_weights(self, delta, learn_rate=1.0, decay=0.0):
         """ Calculate the weight update """

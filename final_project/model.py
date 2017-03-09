@@ -5,6 +5,8 @@
 import json
 import pathlib
 
+import numpy as np
+
 from . import layers
 
 # Classes
@@ -36,18 +38,44 @@ class Model(object):
                 return False
         return True
 
-    def predict(self, x):
-        """ Predict the output from the input """
+    def init_weights(self):
+        """ Initialize the layer's weights """
+
+        prev_size = self.input_size
 
         for layer in self.layers:
+            layer.init_weights(prev_size)
+            prev_size = layer.size
+
+    def predict(self, x):
+        """ Predict the output from the input """
+        if x.ndim == 1:
+            x = x[:, np.newaxis]
+
+        for i, layer in enumerate(self.layers):
             x = layer.predict(x)
         return x
 
-    def calc_error(self, y, ytarget):
-        """ Calculate the error between the prediction and the target """
+    def gradient_descent(self, x, y, learn_rate=0.1, decay=0.0):
+        """ Implement gradient descent """
+        if x.ndim == 1:
+            x = x[:, np.newaxis]
+        if y.ndim == 1:
+            y = y[:, np.newaxis]
 
-        # Mean squared error, no weight decay
-        return 0.5 * (y - ytarget)**2
+        yhat = self.predict(x)
+
+        delta1 = self.layers[-1].calc_error(y)
+        self.layers[-1].update_weights(delta1,
+                                       learn_rate=learn_rate,
+                                       decay=decay)
+
+        for layer in reversed(self.layers[:-1]):
+            delta0 = layer.calc_delta(delta1)
+            layer.update_weights(delta0, learn_rate=learn_rate, decay=decay)
+
+            delta1 = delta0
+        return np.sum((yhat - y)**2)
 
     def add_layer(self, layer):
         """ Add a layer to the model """
@@ -70,6 +98,42 @@ class Model(object):
                       sort_keys=True,
                       indent=4,
                       separators=(',', ': '))
+
+    def save_weights(self, weightfile):
+        """ Dump the model weights
+
+        :param weightfile:
+            The numpy npz file to write to
+        """
+        weightfile = pathlib.Path(weightfile)
+        layer_data = {}
+        for i, layer in enumerate(self.layers):
+            prefix = '{}-{:02d}-'.format(type(layer).__name__, i)
+            layer_data[prefix + 'weight'] = layer.weight
+            layer_data[prefix + 'bias'] = layer.bias
+        np.savez(str(weightfile), **layer_data)
+
+    def load_weights(self, weightfile):
+        """ Load weights from a file
+
+        :param weightfile:
+            The numpy npz file to read from
+        """
+        layer_data = np.load(str(weightfile))
+        layer_keys = set(layer_data.keys())
+
+        for i, layer in enumerate(self.layers):
+            prefix = '{}-{:02d}-'.format(type(layer).__name__, i)
+            weight = layer_data[prefix + 'weight']
+            bias = layer_data[prefix + 'bias']
+
+            layer_keys.remove(prefix + 'weight')
+            layer_keys.remove(prefix + 'bias')
+
+            layer.set_weights(weight, bias)
+
+        if len(layer_keys) > 0:
+            raise ValueError('Got extra layer data: {}'.format(layer_keys))
 
     @classmethod
     def load_model(cls, modelfile):
