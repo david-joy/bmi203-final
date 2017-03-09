@@ -27,10 +27,10 @@ def sigmoid(x):
     return y
 
 
-def sigmoid_prime(x):
+def sigmoid_prime(y):
     # Derivative of the logistic function
-    f = sigmoid(x)
-    return f * (1 - f)
+    # Note that this is in terms of y, not x
+    return y * (1 - y)
 
 # Classes
 
@@ -80,6 +80,10 @@ class FullyConnected(Layer):
 
         self.weight = None
         self.bias = None
+
+        # Memorize the last activation
+        self.z = None
+        self.a = None
 
     def __eq__(self, other):
         return self.size == other.size
@@ -136,17 +140,39 @@ class FullyConnected(Layer):
             raise ValueError(err)
 
         self.weight = weight
-        self.bias = bias
+        self.bias = bias[:, np.newaxis]
 
-    def forward(self, x):
-        """ Calculate the forward scores
+    def predict(self, x):
+        """ Calculate the forward prediction
 
         :param x:
             A numpy array of prev_size x 1
         :returns:
             A numpy array of size x 1
         """
-        return self.activation(self.weight @ x + self.bias)
+        if x.ndim == 1:
+            x = x[:, np.newaxis]
+        self.z = self.weight @ x + self.bias
+        self.a = self.activation(self.z)
+        return self.a
+
+    def calc_error(self, ytarget):
+        if ytarget.ndim == 1:
+            ytarget = ytarget[:, np.newaxis]
+        return (self.a - ytarget) * self.gradient(self.a)
+
+    def calc_delta(self, delta):
+        """ Calculate the update """
+        return (self.weight.T @ delta) * self.gradient(self.a)
+
+    def update_weights(self, delta, learn_rate=1.0, decay=0.0):
+        """ Calculate the weight update """
+
+        delta_weight = self.a.T @ delta
+        delta_bias = delta
+
+        self.weight -= learn_rate * (delta_weight + decay * self.weight)
+        self.bias -= learn_rate * delta_bias
 
 
 # Functions

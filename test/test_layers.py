@@ -26,8 +26,7 @@ def test_from_dict(data, layer):
     assert res == layer
 
 
-
-def test_fully_connected_forward_activations():
+def test_fully_connected_activations():
     layer = layers.FullyConnected(size=3, func='sigmoid')
 
     # Make a 3x2 weight matrix
@@ -43,10 +42,30 @@ def test_fully_connected_forward_activations():
     x = np.array([0.4, -0.5])
 
     layer.set_weights(weight, bias)
-    y = layer.forward(x)
 
-    assert y.shape == (3, )
+    y = layer.predict(x)
 
-    exp_y = np.array([0.5349429, 0.4625702, 0.4133824])
+    assert y.shape == (3, 1)
+
+    exp_y = np.array([[0.5349429], [0.4625702], [0.4133824]])
 
     np.testing.assert_almost_equal(y, exp_y)
+
+    ytarget = np.array([0.4, 0.5, 0.6])
+
+    delta = layer.calc_error(ytarget)
+    layer.update_weights(delta, learn_rate=0.5)
+
+    exp_weight = np.array([
+        [0.1025265, 0.0025265],
+        [0.0025265, -0.0974735],
+        [0.5025265, 0.5025265],
+    ])
+    exp_bias = np.array([
+        [0.08321452],
+        [-0.19534749],
+        [-0.27737286],
+    ])
+
+    np.testing.assert_almost_equal(layer.weight, exp_weight)
+    np.testing.assert_almost_equal(layer.bias, exp_bias)

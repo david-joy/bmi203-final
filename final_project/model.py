@@ -36,6 +36,19 @@ class Model(object):
                 return False
         return True
 
+    def predict(self, x):
+        """ Predict the output from the input """
+
+        for layer in self.layers:
+            x = layer.predict(x)
+        return x
+
+    def calc_error(self, y, ytarget):
+        """ Calculate the error between the prediction and the target """
+
+        # Mean squared error, no weight decay
+        return 0.5 * (y - ytarget)**2
+
     def add_layer(self, layer):
         """ Add a layer to the model """
         self.layers.append(layer)
