@@ -13,13 +13,45 @@ You are to construct a machine learning system that will distinguish real bindin
 
 ## 3-8-3 Autoencoder
 
-Using the script in [train_838_autoenc.py](https://github.com/david-joy/bmi203-final/blob/master/train_838_autoenc.py), I built an autoencoder to try to encode 8 one-hot encoded labels into a 3 layer hidden unit net (to try to learn binary encoding). Training with learning rate of 0.0001 and weight decay of 0.0001 gives the following loss plot with sigmoid
+Using the script in [train_838_autoenc.py](https://github.com/david-joy/bmi203-final/blob/master/train_838_autoenc.py), I built an autoencoder to try to encode 8 one-hot encoded labels into a 3 layer hidden unit net (to try to learn binary encoding). Using sigmoid activations gives the following loss profile:
 
-<img src="plots/autoencoder_838_sigmoid.png"><br />
+<img src="plots/autoencoder_838_sigmoid_loss.png"><br />
 
 And the following loss with ReLU:
 
-<img src="plots/autoencoder_838_relu.png"><br />
+<img src="plots/autoencoder_838_relu_loss.png"><br />
+
+It appears that with a fixed learning rate, the sigmoid functions are unable to recover a code:
+
+<img src="plots/autoencoder_838_sigmoid_code.png"><br />
+
+But the ReLU learns a (mostly) complete binary representation:
+
+<img src="plots/autoencoder_838_relu_code.png"><br />
+
+To replicate the ReLU training:<br />
+
+```bash
+python train_838_autoenc.py relu \
+    --seed 1318744590 \
+    --learn-rate 0.11 \
+    --weight-decay 0.01 \
+    --noise-magnitude 0.0 \
+    --num-epochs 10000
+```
+
+To replicate the sigmoid training:
+
+```bash
+python train_838_autoenc.py relu \
+    --seed 2568163225 \
+    --learn-rate 0.11 \
+    --weight-decay 0.01 \
+    --noise-magnitude 0.0 \
+    --num-epochs 10000
+```
+
+Unlike some autoencoder tasks, adding noise to the inputs didn't seem to strongly improve results.
 
 ## structure
 

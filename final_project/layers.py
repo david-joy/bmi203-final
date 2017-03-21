@@ -31,7 +31,7 @@ def sigmoid_prime(a):
     # Derivative of the logistic function
     # Note that this is in terms of f(x) (aka a, the activation)
     # And not in terms of x
-    return a * (1 - a)
+    return a * (1.0 - a)
 
 
 def relu(x):
@@ -114,24 +114,26 @@ class FullyConnected(Layer):
                 'func': self.func,
                 'size': self.size}
 
-    def init_weights(self, prev_size):
+    def init_weights(self, prev_size, rng=None):
         """ Initialize the weight matrix and bias vector
 
         :param prev_size:
             The size of the previous layer
         """
+        if rng is None:
+            rng = np.random
 
         # Input x will be prev_size x k
         # Weight will be size x prev_size
         # Bias will be size x 1
         # Output will be size x k
-        self.weight = np.random.uniform(low=-WEIGHT_INIT_SCALE,
-                                        high=WEIGHT_INIT_SCALE,
-                                        size=(self.size, prev_size))
+        self.weight = rng.uniform(low=-WEIGHT_INIT_SCALE,
+                                  high=WEIGHT_INIT_SCALE,
+                                  size=(self.size, prev_size))
 
-        self.bias = np.random.uniform(low=-WEIGHT_INIT_SCALE,
-                                      high=WEIGHT_INIT_SCALE,
-                                      size=(self.size, 1))
+        self.bias = rng.uniform(low=-WEIGHT_INIT_SCALE,
+                                high=WEIGHT_INIT_SCALE,
+                                size=(self.size, 1))
         self.prev_size = prev_size
 
     def set_weights(self, weight, bias):

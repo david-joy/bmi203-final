@@ -1,7 +1,6 @@
 """ Master object to combine the layers into a net """
 
 # Imports
-
 import json
 import pathlib
 
@@ -23,10 +22,14 @@ class Model(object):
 
     """
 
-    def __init__(self, name=None, input_size=None):
+    def __init__(self, name=None, input_size=None, rng=None):
         self.name = name
         self.input_size = input_size
         self.layers = []
+
+        if rng is None:
+            rng = np.random
+        self.rng = rng
 
     def __eq__(self, other):
         if len(self.layers) != len(other.layers):
@@ -44,7 +47,7 @@ class Model(object):
         prev_size = self.input_size
 
         for layer in self.layers:
-            layer.init_weights(prev_size)
+            layer.init_weights(prev_size, rng=self.rng)
             prev_size = layer.size
 
     def predict(self, x):
