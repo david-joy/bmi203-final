@@ -112,11 +112,11 @@ def test_one_step_forward_backward():
     # Now do gradient descent
     err = net.gradient_descent(x, ytarget, learn_rate=0.5, weight_decay=0.0)
 
-    assert round(err, 4) == 0.5967
+    assert np.round(err, 4) == 0.5967
 
     exp_weight = np.array([
-        [0.3626921, 0.4126921],
-        [0.4626921, 0.5126921],
+        [0.3589165, 0.4086662],
+        [0.5113013, 0.5613701],
     ])
     exp_bias = np.array([[0.53075072], [0.61904912]])
 
@@ -124,10 +124,68 @@ def test_one_step_forward_backward():
     np.testing.assert_almost_equal(exp_bias, layer2.bias)
 
     exp_weight = np.array([
-        [0.1473928, 0.1973928],
-        [0.2473928, 0.2973928],
+        [0.1497807, 0.1995614],
+        [0.2497511, 0.2995023],
     ])
-    exp_bias = np.array([[0.3484128], [0.3472095]])
+    exp_bias = np.array([[0.3456143], [0.3450229]])
 
     np.testing.assert_almost_equal(exp_weight, layer1.weight)
     np.testing.assert_almost_equal(exp_bias, layer1.bias)
+
+
+def test_batch_prediction_gradient_descent():
+
+    # Hardwire weights so we can get an answer back
+    w1 = np.array([
+        [0.1, 0.2, 0.3, 0.4],
+        [-0.1, 0.2, -0.3, 0.4],
+        [-0.1, -0.2, 0.3, 0.4],
+    ])
+    b1 = np.array([0.1, -0.1, 0.1])
+    l1 = layers.FullyConnected(size=3, func='sigmoid')
+    l1.set_weights(w1, b1)
+
+    w2 = np.array([
+        [0.15, 0.25, -0.3],
+        [-0.15, 0.25, 0.3],
+    ])
+    b2 = np.array([0.15, -0.15])
+    l2 = layers.FullyConnected(size=2, func='sigmoid')
+    l2.set_weights(w2, b2)
+
+    net = model.Model('4-3-2 Net', input_size=4)
+    net.add_layer(l1)
+    net.add_layer(l2)
+    assert net.layers[0].weight.shape == (3, 4)
+    assert net.layers[1].weight.shape == (2, 3)
+
+    x = np.array([
+        [0, 0, 0, 1],
+        [0, 0, 1, 0],
+        [0, 1, 0, 0],
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    ]).T
+    y = np.array([
+        [0, 0],
+        [0, 1],
+        [1, 0],
+        [1, 1],
+        [1, 0],
+        [0, 1],
+        [0, 0],
+    ]).T
+
+    # Make sure we can predict a batch
+    y_batch = net.predict(x)
+    assert y_batch.shape == (2, 7)
+    for i, xr in enumerate(x.T):
+        yr = net.predict(xr)
+        assert yr.shape == (2, 1)
+        np.testing.assert_almost_equal(y_batch[:, i], yr[:, 0])
+
+    # Make sure we can learn with a batch
+    y_loss = net.gradient_descent(x, y)
+    assert y_loss.shape == (1, 7)

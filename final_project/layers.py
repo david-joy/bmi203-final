@@ -27,11 +27,11 @@ def sigmoid(x):
     return y
 
 
-def sigmoid_prime(z):
+def sigmoid_prime(a):
     # Derivative of the logistic function
-    # Note that this is in terms of y, not x
-    f = sigmoid(z)
-    return f * (1 - f)
+    # Note that this is in terms of f(x) (aka a, the activation)
+    # And not in terms of x
+    return a * (1 - a)
 
 
 def relu(x):
@@ -41,8 +41,11 @@ def relu(x):
     return f
 
 
-def relu_prime(z):
-    return (z >= 0).astype(np.float32)
+def relu_prime(a):
+    # Derivative of the ReLU function
+    # Note that this is in terms of f(x) (aka a, the activation)
+    # And not in terms of x
+    return (a > 0).astype(np.float32)
 
 
 # Classes
@@ -97,6 +100,8 @@ class FullyConnected(Layer):
         self.bias = None
 
         # Memorize the last activation
+        self.prev_size = None
+        self.x = None
         self.z = None
         self.a = None
 
@@ -116,9 +121,10 @@ class FullyConnected(Layer):
             The size of the previous layer
         """
 
-        # Input x will be prev_size
+        # Input x will be prev_size x k
         # Weight will be size x prev_size
-        # Output will be size
+        # Bias will be size x 1
+        # Output will be size x k
         self.weight = np.random.uniform(low=-WEIGHT_INIT_SCALE,
                                         high=WEIGHT_INIT_SCALE,
                                         size=(self.size, prev_size))
@@ -126,6 +132,7 @@ class FullyConnected(Layer):
         self.bias = np.random.uniform(low=-WEIGHT_INIT_SCALE,
                                       high=WEIGHT_INIT_SCALE,
                                       size=(self.size, 1))
+        self.prev_size = prev_size
 
     def set_weights(self, weight, bias):
         """ Set the weights to given values
@@ -162,13 +169,14 @@ class FullyConnected(Layer):
         """ Calculate the forward prediction
 
         :param x:
-            A numpy array of prev_size x 1
+            A numpy array of prev_size x k
         :returns:
-            A numpy array of size x 1
+            A numpy array of size x k
         """
         if x.ndim == 1:
             x = x[:, np.newaxis]
 
+        self.x = x
         self.z = self.weight @ x + self.bias
         self.a = self.activation(self.z)
         return self.a
@@ -176,17 +184,40 @@ class FullyConnected(Layer):
     def calc_error(self, ytarget):
         if ytarget.ndim == 1:
             ytarget = ytarget[:, np.newaxis]
-        return (self.a - ytarget) * self.gradient(self.z)
+        assert ytarget.shape == self.a.shape
+
+        delta = self.a - ytarget
+        grad = self.gradient(self.a)
+        assert delta.shape == grad.shape
+
+        return delta * grad
 
     def calc_delta(self, delta):
         """ Calculate the update """
-        return (self.weight @ delta) * self.gradient(self.z)
+        if delta.ndim == 1:
+            delta = delta[:, np.newaxis]
+
+        # Run the previous delta backwards through the weight matrix
+        delta = (self.weight.T @ delta)
+        grad = self.gradient(self.x)
+        assert delta.shape == grad.shape
+
+        return delta * grad
 
     def update_weights(self, delta, learn_rate=1.0, weight_decay=0.0):
         """ Calculate the weight update """
 
-        delta_weight = self.a.T @ delta
-        delta_bias = delta
+        if delta.ndim == 1:
+            delta = delta[:, np.newaxis]
+
+        assert delta.shape[0] == self.size
+        assert delta.shape[1] == self.x.shape[1]
+
+        delta_weight = delta @ self.x.T / delta.shape[1]
+        delta_bias = np.mean(delta, axis=1)[:, np.newaxis]
+
+        assert delta_weight.shape == self.weight.shape
+        assert delta_bias.shape == self.bias.shape
 
         self.weight -= learn_rate * (delta_weight + weight_decay * self.weight)
         self.bias -= learn_rate * delta_bias

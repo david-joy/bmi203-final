@@ -63,23 +63,31 @@ class Model(object):
         if y.ndim == 1:
             y = y[:, np.newaxis]
 
+        assert x.shape[1] == y.shape[1]
+
         yhat = self.predict(x)
 
-        delta1 = self.layers[-1].calc_error(y)
-        self.layers[-1].update_weights(delta1,
-                                       learn_rate=learn_rate,
-                                       weight_decay=weight_decay)
+        assert yhat.shape == y.shape
 
-        for layer in reversed(self.layers[:-1]):
-            delta0 = layer.calc_delta(delta1)
-            layer.update_weights(delta0,
+        # Backprop the error
+        deltas = [self.layers[-1].calc_error(y)]
+        for layer in reversed(self.layers[1:]):
+            deltas.append(layer.calc_delta(deltas[-1]))
+
+        # Update the weights
+        assert len(deltas) == len(self.layers)
+        for layer, delta in zip(reversed(self.layers), deltas):
+            layer.update_weights(delta,
                                  learn_rate=learn_rate,
                                  weight_decay=weight_decay)
-            delta1 = delta0
-        return np.sum((yhat - y)**2)
+        return np.sum((yhat - y)**2, axis=0)[np.newaxis, :]
 
     def add_layer(self, layer):
         """ Add a layer to the model """
+        if len(self.layers) == 0:
+            layer.prev_size = self.input_size
+        else:
+            layer.prev_size = self.layers[-1].size
         self.layers.append(layer)
 
     def save_model(self, modelfile):
