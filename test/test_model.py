@@ -6,7 +6,7 @@ import tempfile
 
 import numpy as np
 
-from final_project import model, layers
+from final_project import model, layers, optimizers
 
 # Tests
 
@@ -36,9 +36,10 @@ def test_can_read_write_weights():
     autoenc.add_layer(layers.FullyConnected(size=3, func='sigmoid'))
     autoenc.add_layer(layers.FullyConnected(size=8, func='sigmoid'))
     autoenc.init_weights()
+    autoenc.set_optimizer(optimizers.Adam())
 
     x = np.array([0, 1, 0, 0, 0, 0, 0, 0])
-    autoenc.gradient_descent(x, x, learn_rate=0.5, weight_decay=0.0)
+    autoenc.gradient_descent(x, x)
 
     with tempfile.TemporaryDirectory() as tempdir:
         weightfile = pathlib.Path(tempdir) / 'weights.npz'
@@ -85,6 +86,8 @@ def test_one_step_forward_backward():
     # Build out the whole model
     net.add_layer(layer1)
     net.add_layer(layer2)
+    net.set_optimizer(optimizers.SGD(learn_rate=0.5,
+                                     weight_decay=0.0))
 
     ytarget = np.array([0.01, 0.99])
 
@@ -110,7 +113,7 @@ def test_one_step_forward_backward():
     np.testing.assert_almost_equal(yhat, exp_y2)
 
     # Now do gradient descent
-    err = net.gradient_descent(x, ytarget, learn_rate=0.5, weight_decay=0.0)
+    err = net.gradient_descent(x, ytarget)
 
     assert np.round(err, 4) == 0.5967
 
@@ -156,6 +159,9 @@ def test_batch_prediction_gradient_descent():
     net = model.Model('4-3-2 Net', input_size=4)
     net.add_layer(l1)
     net.add_layer(l2)
+    net.set_optimizer(optimizers.SGD(learn_rate=0.5,
+                                     weight_decay=0.0))
+
     assert net.layers[0].weight.shape == (3, 4)
     assert net.layers[1].weight.shape == (2, 3)
 

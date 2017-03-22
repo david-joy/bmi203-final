@@ -10,15 +10,14 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-from final_project import model, layers
+from final_project import model, layers, optimizers
 
 # Constants
 THISDIR = pathlib.Path(__file__).resolve().parent
 WEIGHTDIR = THISDIR / 'weights'
 PLOTDIR = THISDIR / 'plots'
 
-LEARN_RATE = 0.11
-WEIGHT_DECAY = 0.01
+LEARN_RATE = 0.001
 NUM_EPOCHS = 10000
 NOISE_MAGNITUDE = 0.0
 
@@ -28,7 +27,6 @@ NOISE_MAGNITUDE = 0.0
 
 def train_autoenc(activation,
                   learn_rate=LEARN_RATE,
-                  weight_decay=WEIGHT_DECAY,
                   num_epochs=NUM_EPOCHS,
                   noise_magnitude=NOISE_MAGNITUDE,
                   seed=None):
@@ -67,13 +65,11 @@ def train_autoenc(activation,
     autoenc.add_layer(layers.FullyConnected(size=3, func=activation))
     autoenc.add_layer(layers.FullyConnected(size=8, func=activation))
     autoenc.init_weights()
+    autoenc.set_optimizer(optimizers.Adam(learn_rate=learn_rate))
 
     losses = []
-    alpha = learn_rate
     for epoch in range(num_epochs):
-        err = autoenc.gradient_descent(x_in, x_out,
-                                       learn_rate=alpha,
-                                       weight_decay=weight_decay)
+        err = autoenc.gradient_descent(x_in, x_out)
         err = np.mean(err)
         losses.append(err)
 
@@ -89,8 +85,8 @@ def train_autoenc(activation,
     print('Plotting losses for {}...'.format(activation))
     fig, ax = plt.subplots(1, 1, figsize=(12, 12))
 
-    title = 'Loss for 8-3-8 {} Autoencoder ($\\alpha$={}) ($\\lambda={}$)'
-    title = title.format(activation, learn_rate, weight_decay)
+    title = 'Loss for 8-3-8 {} Autoencoder ($\\alpha$={})'
+    title = title.format(activation, learn_rate)
 
     ax.plot(np.arange(losses.shape[0]), losses, linewidth=3)
     ax.set_xlabel('Epochs')
@@ -105,8 +101,8 @@ def train_autoenc(activation,
 
     fig, axes = plt.subplots(1, 4, figsize=(16, 8))
 
-    title = 'Encoding for 8-3-8 {} Autoencoder ($\\alpha$={}) ($\\lambda={}$)'
-    title = title.format(activation, learn_rate, weight_decay)
+    title = 'Encoding for 8-3-8 {} Autoencoder ($\\alpha$={})'
+    title = title.format(activation, learn_rate)
 
     input_layer = []
     code_layer = []
@@ -158,8 +154,6 @@ def parse_args(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--learn-rate', type=float, default=LEARN_RATE,
                         help='Learning rate to use')
-    parser.add_argument('--weight-decay', type=float, default=WEIGHT_DECAY,
-                        help='Weight decay rate to use')
     parser.add_argument('-n', '--num-epochs', type=int, default=NUM_EPOCHS,
                         help='Number of epochs to use')
     parser.add_argument('--seed', type=int,

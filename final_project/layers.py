@@ -206,9 +206,8 @@ class FullyConnected(Layer):
 
         return delta * grad
 
-    def update_weights(self, delta, learn_rate=1.0, weight_decay=0.0):
-        """ Calculate the weight update """
-
+    def calc_grad(self, delta):
+        """ Calculate the gradient from the delta """
         if delta.ndim == 1:
             delta = delta[:, np.newaxis]
 
@@ -220,6 +219,14 @@ class FullyConnected(Layer):
 
         assert delta_weight.shape == self.weight.shape
         assert delta_bias.shape == self.bias.shape
+        return delta_weight, delta_bias
+
+    def update_weights(self, delta, learn_rate=1.0, weight_decay=0.0):
+        """ Calculate the weight update
+
+        .. warning:: This is a simple optimizer that doesn't work very well
+        """
+        delta_weight, delta_bias = self.calc_grad(delta)
 
         self.weight -= learn_rate * (delta_weight + weight_decay * self.weight)
         self.bias -= learn_rate * delta_bias

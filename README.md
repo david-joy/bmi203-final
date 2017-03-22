@@ -21,11 +21,11 @@ And the following loss with ReLU:
 
 <img src="plots/autoencoder_838_relu_loss.png"><br />
 
-It appears that with a fixed learning rate, the sigmoid functions are unable to recover a code:
+It appears that with a fixed learning rate, the sigmoid functions are able to recover a code:
 
 <img src="plots/autoencoder_838_sigmoid_code.png"><br />
 
-But the ReLU learns a (mostly) complete binary representation:
+But the ReLU learns a partially complete one, but suffers from dead neurons in the hidden layer:
 
 <img src="plots/autoencoder_838_relu_code.png"><br />
 
@@ -34,8 +34,7 @@ To replicate the ReLU training:<br />
 ```bash
 python train_838_autoenc.py relu \
     --seed 1318744590 \
-    --learn-rate 0.11 \
-    --weight-decay 0.01 \
+    --learn-rate 0.001 \
     --noise-magnitude 0.0 \
     --num-epochs 10000
 ```
@@ -43,15 +42,14 @@ python train_838_autoenc.py relu \
 To replicate the sigmoid training:
 
 ```bash
-python train_838_autoenc.py relu \
-    --seed 2568163225 \
-    --learn-rate 0.11 \
-    --weight-decay 0.01 \
+python train_838_autoenc.py sigmoid \
+    --seed 1498790038 \
+    --learn-rate 0.001 \
     --noise-magnitude 0.0 \
-    --num-epochs 10000
+    --num-epochs 40000
 ```
 
-Unlike some autoencoder tasks, adding noise to the inputs didn't seem to strongly improve results.
+Unlike some autoencoder tasks, adding noise to the inputs didn't seem to improve results.
 
 ## structure
 

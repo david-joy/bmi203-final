@@ -31,6 +31,8 @@ class Model(object):
             rng = np.random
         self.rng = rng
 
+        self.opt = None
+
     def __eq__(self, other):
         if len(self.layers) != len(other.layers):
             return False
@@ -40,6 +42,10 @@ class Model(object):
             if sl != ol:
                 return False
         return True
+
+    def set_optimizer(self, opt):
+        """ Set the optimizer """
+        self.opt = opt
 
     def init_weights(self):
         """ Initialize the layer's weights """
@@ -59,7 +65,7 @@ class Model(object):
             x = layer.predict(x)
         return x
 
-    def gradient_descent(self, x, y, learn_rate=0.1, weight_decay=0.0):
+    def gradient_descent(self, x, y):
         """ Implement gradient descent """
         if x.ndim == 1:
             x = x[:, np.newaxis]
@@ -76,13 +82,19 @@ class Model(object):
         deltas = [self.layers[-1].calc_error(y)]
         for layer in reversed(self.layers[1:]):
             deltas.append(layer.calc_delta(deltas[-1]))
+        assert len(deltas) == len(self.layers)
+
+        # Convert the deltas to gradients
+        weights = self.get_weight_list()
+        grads = self.get_grad_list(list(reversed(deltas)))
+
+        # Use the optimizer to update the weights
+        new_weights = self.opt.update(weights, grads)
 
         # Update the weights
-        assert len(deltas) == len(self.layers)
-        for layer, delta in zip(reversed(self.layers), deltas):
-            layer.update_weights(delta,
-                                 learn_rate=learn_rate,
-                                 weight_decay=weight_decay)
+        self.set_weight_list(new_weights)
+
+        # Return the MSE for each prediction
         return np.sum((yhat - y)**2, axis=0)[np.newaxis, :]
 
     def add_layer(self, layer):
@@ -146,6 +158,42 @@ class Model(object):
 
         if len(layer_keys) > 0:
             raise ValueError('Got extra layer data: {}'.format(layer_keys))
+
+    def get_weight_list(self):
+        """ Get all the weights as a list """
+        weights = []
+        for layer in self.layers:
+            weights.append(layer.weight)
+            weights.append(layer.bias)
+        return weights
+
+    def get_grad_list(self, deltas):
+        """ Get all the gradients as a list
+
+        :param deltas:
+            The deltas, IN FORWARD PASS ORDER
+        :returns:
+            The list of gradients
+        """
+        assert len(deltas) == len(self.layers)
+
+        grads = []
+        for layer, delta in zip(self.layers, deltas):
+            d_weight, d_bias = layer.calc_grad(delta)
+            grads.append(d_weight)
+            grads.append(d_bias)
+        return grads
+
+    def set_weight_list(self, weights):
+        """ Set all the weights from a list """
+        assert len(weights) == len(self.layers) * 2
+        for i, w in enumerate(weights):
+            li = i // 2
+            layer = self.layers[li]
+            if i % 2 == 0:
+                layer.weight = w
+            else:
+                layer.bias = w
 
     @classmethod
     def load_model(cls, modelfile):
