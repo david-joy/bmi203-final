@@ -90,3 +90,7 @@ ENV/
 
 # Training weights
 weights/*.npz
+
+# Project specific generated code
+hw3/_alignment.c
+

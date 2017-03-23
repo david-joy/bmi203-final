@@ -21,11 +21,11 @@ And the following loss with ReLU:
 
 <img src="plots/autoencoder_838_relu_loss.png"><br />
 
-It appears that with a fixed learning rate, the sigmoid functions are able to recover a code:
+With sigmoid functions, a fixed learning rate was unable to recover the code, but the [Adam](https://github.com/david-joy/bmi203-final/blob/master/final_project/optimizers.py#L48) optimizer was able to overcome the potential energy barrier and learn a perfect set of activations (although they don't completely correspond to standard binary code):
 
 <img src="plots/autoencoder_838_sigmoid_code.png"><br />
 
-But the ReLU learns a partially complete one, but suffers from dead neurons in the hidden layer:
+Replacing the sigmoid units with ReLUs learns a partially complete binary code, but suffers from dead neurons in the hidden layer that neither optimization strategy could overcome:
 
 <img src="plots/autoencoder_838_relu_code.png"><br />
 
@@ -51,9 +51,17 @@ python train_838_autoenc.py sigmoid \
 
 Unlike some autoencoder tasks, adding noise to the inputs didn't seem to improve results.
 
+## Rap1 Training Data
+
+To find negative sequences that were a good match for the positive training set, I performed an ungapped alignment between the 137 positive examples and the ~3000 fragments from the yeast genome using the code in [_alignment.pyx](https://github.com/david-joy/bmi203-final/blob/master/final_project/_alignment.pyx) and calculated the top 5 normalized mutual information scores and sequences for each yeast fragment with the code in [make_rap1_data.py](https://github.com/david-joy/bmi203-final/blob/master/make_rap1_data.py).
+
+The fragments had the following distribution of scores:
+
+<img src="plots/neg_example_dist.png"><br />
+
 ## structure
 
-`model.py` contains the main neural network container class that assembles the layers found in `layers.py`. `io.py` contains tools to read the data files and write out scores.
+`model.py` contains the main neural network container class that assembles the layers found in `layers.py`. `optimizers.py` contains code to do various forms of adaptive stochastic gradient descent. `alignment.py` and the cython file `_alignment.pyx` contain the ungapped sequence alignment code. `io.py` contains tools to read the data files and write out scores. 
 
 ```
 .
@@ -64,10 +72,14 @@ Unlike some autoencoder tasks, adding noise to the inputs didn't seem to improve
 │   ├── __init__.py
 │   ├── model.py
 │   ├── layers.py
+│   ├── optimizers.py
+│   ├── alignment.py
+│   ├── _alignment.pyx
 │   └── io.py
 └── test
     ├── test_model.py
     ├── test_layers.py
+    ├── test_alignment.py
     └── test_io.py
 ```
 
