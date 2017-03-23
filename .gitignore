@@ -92,5 +92,5 @@ ENV/
 weights/*.npz
 
 # Project specific generated code
-hw3/_alignment.c
+final_project/_alignment.c
 

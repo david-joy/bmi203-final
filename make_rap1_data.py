@@ -5,6 +5,8 @@
 # Imports
 
 # Standard lib
+import argparse
+import time
 import pathlib
 import multiprocessing
 
@@ -23,7 +25,7 @@ NEGATIVE_FA_FILE = DATADIR / 'yeast-upstream-1k-negative.fa'
 POSITIVE_FILE = DATADIR / 'rap1-lieb-positives.txt'
 NEGATIVE_CANDIDATE_DIR = DATADIR / 'negative_seqs'
 
-PROCESSES = 8
+PROCESSES = 16
 
 TOPK = 5
 
@@ -52,7 +54,8 @@ def maybe_find_top_alignments(item):
         return []
 
 
-def find_all_candidates(positive_recs, neg_rec, neg_candidate_file):
+def find_all_candidates(positive_recs, neg_rec, neg_candidate_file,
+                        processes=PROCESSES):
 
     items = [(p, neg_rec) for p in positive_recs]
 
@@ -60,7 +63,7 @@ def find_all_candidates(positive_recs, neg_rec, neg_candidate_file):
 
     with neg_candidate_file.open('wt') as fp:
         fp.write('#score,sequence\n')
-        with multiprocessing.Pool(PROCESSES) as pool:
+        with multiprocessing.Pool(processes) as pool:
             results = pool.imap(maybe_find_top_alignments, items)
             for i, res in enumerate(results):
                 print('Writing result for {}'.format(i))
@@ -71,7 +74,15 @@ def find_all_candidates(positive_recs, neg_rec, neg_candidate_file):
                         fp.write(f'{score},{line}\n')
 
 
-def main():
+def parse_args(args=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--processes', type=int, default=PROCESSES)
+    return parser.parse_args(args=args)
+
+
+def main(args=None):
+    args = parse_args(args=args)
+
     positive_recs = io.read_example_file(POSITIVE_FILE)
     negative_recs = io.read_fasta_file(NEGATIVE_FA_FILE)
 
@@ -84,13 +95,15 @@ def main():
         if neg_candidate_file.is_file():
             print(f'Already found all negatives for {neg_candidate_file}')
             continue
-
+        t0 = time.time()
         try:
-            find_all_candidates(positive_recs, neg_rec, neg_candidate_file)
+            find_all_candidates(positive_recs, neg_rec, neg_candidate_file,
+                                processes=args.processes)
         except Exception:
             if neg_candidate_file.is_file():
                 neg_candidate_file.unlink()
             raise
+        print('Finished in {} secs'.format(time.time() - t0))
 
 
 if __name__ == '__main__':
