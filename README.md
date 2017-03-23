@@ -53,11 +53,21 @@ Unlike some autoencoder tasks, adding noise to the inputs didn't seem to improve
 
 ## Rap1 Training Data
 
-To find negative sequences that were a good match for the positive training set, I performed an ungapped alignment between the 137 positive examples and the ~3000 fragments from the yeast genome using the code in [_alignment.pyx](https://github.com/david-joy/bmi203-final/blob/master/final_project/_alignment.pyx) and calculated the top 5 normalized mutual information scores and sequences for each yeast fragment with the code in [make_rap1_data.py](https://github.com/david-joy/bmi203-final/blob/master/make_rap1_data.py).
+To find negative sequences that were a good match for the positive training set, I performed an ungapped alignment between the 137 positive examples and the ~3000 fragments from the yeast genome using the code in [_alignment.pyx](https://github.com/david-joy/bmi203-final/blob/master/final_project/_alignment.pyx) and calculated the top 5 normalized mutual information scores and sequences for each yeast fragment with the code in [make_rap1_data.py](https://github.com/david-joy/bmi203-final/blob/master/make_rap1_data.py). I also performed the same pairwise approach with the known positive fragments.
 
 The fragments had the following distribution of scores:
 
-<img src="plots/neg_example_dist.png"><br />
+<img src="plots/align_score_dist.png"><br />
+
+Normalized mutual information between positive examples is a poor predictor of promotor identity, but it does manage to filter out the negative examples with very little sequence homology to any promoter site.
+
+Interestingly, there were 81 negative fragements with > 90% similarity to a positive example. These examples were excluded from the training set as confounding data unlikely to be real negative examples.
+
+To amplify the positive data set, all single point mutations of a Rap1 site were added to the training set as positive examples with a score of 0.8 (the original examples were given a score of 1.0). With 137 initial examples, this gives 137 * (3 * 17 + 1) = 7124 total positive examples.
+
+An identical number of negative examples were drawn from the aligned dataset by drawing at random from the negative library weighted by the mutual information score of that sequence. This gave a total of ~14,000 samples, which were shuffled and then split into 90% training, 10% evaluation sets in `data/train_final.txt` and `data/test_final.txt`.
+
+The data and plots were generated using [plot_rap1_data.py](https://github.com/david-joy/bmi203-final/blob/master/plot_rap1_data.py).
 
 ## structure
 
