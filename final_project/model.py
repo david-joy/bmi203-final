@@ -65,6 +65,10 @@ class Model(object):
             x = layer.predict(x)
         return x
 
+    def calc_error(self, y, yhat):
+        """ Calculate the MSE """
+        return np.sum((yhat - y)**2, axis=0)[np.newaxis, :]
+
     def gradient_descent(self, x, y):
         """ Implement gradient descent """
         if x.ndim == 1:
@@ -95,7 +99,7 @@ class Model(object):
         self.set_weight_list(new_weights)
 
         # Return the MSE for each prediction
-        return np.sum((yhat - y)**2, axis=0)[np.newaxis, :]
+        return self.calc_error(y, yhat)
 
     def add_layer(self, layer):
         """ Add a layer to the model """
