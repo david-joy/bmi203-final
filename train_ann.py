@@ -48,6 +48,8 @@ def train_rap1_det(learn_rate=LEARN_RATE,
     rng = np.random.RandomState(seed)
 
     # Model
+    prefix = 'ann_rap1'
+
     net = model.Model('Rap1 Detector',
                       input_size=68,
                       rng=rng)
@@ -79,10 +81,10 @@ def train_rap1_det(learn_rate=LEARN_RATE,
     print('Training took {} secs'.format(time.time() - t0))
 
     print('Saving model spec...')
-    net.save_model(MODELDIR / 'ann_rap1.json')
+    net.save_model(MODELDIR / '{}.json'.format(prefix))
 
     print('Saving final weights...')
-    net.save_weights(str(WEIGHTDIR / 'ann_rap1.npz'))
+    net.save_weights(str(WEIGHTDIR / '{}.npz'.format(prefix)))
 
     train_losses = np.array(train_losses)
 
@@ -101,7 +103,7 @@ def train_rap1_det(learn_rate=LEARN_RATE,
     ax.set_title(title)
     ax.legend()
 
-    fig.savefig(str(PLOTDIR / 'ann_rap1_loss.png'))
+    fig.savefig(str(PLOTDIR / '{}_loss.png'.format(prefix)))
     plt.close()
 
 

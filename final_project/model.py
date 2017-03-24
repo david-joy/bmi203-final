@@ -20,6 +20,13 @@ class Model(object):
         auto.add_layer(layers.FullyConnected(3, func='sigmoid'))
         auto.add_layer(layers.FullyConnected(8, func='sigmoid'))
 
+    :param name:
+        The name of the model
+    :param input_size:
+        The number of input neurons into the model
+    :param rng:
+        If not None, the numpy.random.RandomState object to use for all
+        random numbers
     """
 
     def __init__(self, name=None, input_size=None, rng=None):
@@ -44,7 +51,11 @@ class Model(object):
         return True
 
     def set_optimizer(self, opt):
-        """ Set the optimizer """
+        """ Set the optimizer
+
+        :param opt:
+            The optimizer object to use in gradient descent
+        """
         self.opt = opt
 
     def init_weights(self):
@@ -57,7 +68,13 @@ class Model(object):
             prev_size = layer.size
 
     def predict(self, x):
-        """ Predict the output from the input """
+        """ Predict the output from the input
+
+        :param x:
+            The input_size x batch_size array to predict on
+        :returns:
+            An output_size x batch_size prediction from the final layer
+        """
         if x.ndim == 1:
             x = x[:, np.newaxis]
 
@@ -66,11 +83,27 @@ class Model(object):
         return x
 
     def calc_error(self, y, yhat):
-        """ Calculate the MSE """
+        """ Calculate the MSE
+
+        :param y:
+            The output_size x batch_size True labels
+        :param yhat:
+            The output_size x batch_size predicted labels
+        :returns:
+            The mean squared error (1 x batch_size)
+        """
         return np.sum((yhat - y)**2, axis=0)[np.newaxis, :]
 
     def gradient_descent(self, x, y):
-        """ Implement gradient descent """
+        """ Implement gradient descent
+
+        :param x:
+            The input_size x batch_size array to train on
+        :param y:
+            The output_size x batch_size True labels
+        :returns:
+            The mean squared error for this batch (1 x batch_size)
+        """
         if x.ndim == 1:
             x = x[:, np.newaxis]
         if y.ndim == 1:
@@ -102,7 +135,11 @@ class Model(object):
         return self.calc_error(y, yhat)
 
     def add_layer(self, layer):
-        """ Add a layer to the model """
+        """ Add a layer to the model
+
+        :param layer:
+            The layer object to add to the model
+        """
         if len(self.layers) == 0:
             layer.prev_size = self.input_size
         else:
@@ -164,7 +201,11 @@ class Model(object):
             raise ValueError('Got extra layer data: {}'.format(layer_keys))
 
     def get_weight_list(self):
-        """ Get all the weights as a list """
+        """ Get all the weights as a list
+
+        :returns:
+            A list of weight and bias arrays IN FORWARD PASS ORDER
+        """
         weights = []
         for layer in self.layers:
             weights.append(layer.weight)
@@ -189,7 +230,11 @@ class Model(object):
         return grads
 
     def set_weight_list(self, weights):
-        """ Set all the weights from a list """
+        """ Set all the weights from a list
+
+        :param weights:
+            The list of weight and bias matricies as from get_weight_list
+        """
         assert len(weights) == len(self.layers) * 2
         for i, w in enumerate(weights):
             li = i // 2
@@ -222,5 +267,13 @@ class Model(object):
 
 
 def load_model(modelfile):
-    """ Top level helper constructor """
+    """ Load a model from a specification file
+
+    Top level helper constructor
+
+    :param modelfile:
+        The model spec, as written by save model
+    :returns:
+        A Model instance loaded from the file
+    """
     return Model.load_model(modelfile)

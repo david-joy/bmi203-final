@@ -1,0 +1,16 @@
+{
+    "input_size": 8,
+    "layers": [
+        {
+            "func": "relu",
+            "size": 3,
+            "type": "FullyConnected"
+        },
+        {
+            "func": "relu",
+            "size": 8,
+            "type": "FullyConnected"
+        }
+    ],
+    "name": "3-8-3 Autoencoder"
+}

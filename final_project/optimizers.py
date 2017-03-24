@@ -12,6 +12,8 @@ class SGD(object):
 
     :param float learn_rate:
         The learning rate > 0
+    :param float weight_decay:
+        The weight_decay parameter > 0
     """
 
     def __init__(self, learn_rate=0.001, weight_decay=0.0):

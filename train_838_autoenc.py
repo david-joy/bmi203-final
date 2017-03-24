@@ -79,7 +79,7 @@ def train_autoenc(activation,
 
     print('Saving final model...')
     modelfile = 'autoencoder_838_{}.json'.format(activation)
-    autoenc.save_weights(str(MODELDIR / modelfile))
+    autoenc.save_model(str(MODELDIR / modelfile))
 
     print('Saving final weights...')
     weightfile = 'autoencoder_838_{}.npz'.format(activation)

@@ -77,6 +77,11 @@ class FullyConnected(Layer):
     """ Implement a fully connected layer
 
     This layer represents a fully connected layer with an activation function
+
+    :param size:
+        The size of the OUTPUT of this layer
+    :param func:
+        The name of the activation function for this layer
     """
 
     activations = {
@@ -109,7 +114,11 @@ class FullyConnected(Layer):
         return self.size == other.size
 
     def to_dict(self):
-        """ Convert this layer to a dictionary """
+        """ Convert this layer to a dictionary
+
+        :returns:
+            A dictionary describing this layer
+        """
         return {'type': 'FullyConnected',
                 'func': self.func,
                 'size': self.size}
@@ -119,6 +128,9 @@ class FullyConnected(Layer):
 
         :param prev_size:
             The size of the previous layer
+        :param rng:
+            If not None, the numpy.random.RandomState object to use for all
+            random numbers
         """
         if rng is None:
             rng = np.random
@@ -190,6 +202,13 @@ class FullyConnected(Layer):
         return self.a
 
     def calc_error(self, ytarget):
+        """ Calculate the error for the OUTPUT layer
+
+        :param ytarget:
+            The size x k array of y values to learn
+        :returns:
+            The error delta for the OUTPUT layer
+        """
         if ytarget.ndim == 1:
             ytarget = ytarget[:, np.newaxis]
         assert ytarget.shape == self.a.shape
@@ -201,7 +220,13 @@ class FullyConnected(Layer):
         return delta * grad
 
     def calc_delta(self, delta):
-        """ Calculate the update """
+        """ Calculate the error for a hidden layer
+
+        :param delta:
+            The size x k error delta from the next layer
+        :returns:
+            The prev_size x k error delta for this layer
+        """
         if delta.ndim == 1:
             delta = delta[:, np.newaxis]
 
@@ -213,7 +238,14 @@ class FullyConnected(Layer):
         return delta * grad
 
     def calc_grad(self, delta):
-        """ Calculate the gradient from the delta """
+        """ Calculate the gradient from the delta
+
+        :param delta:
+            The size x k error delta from the next layer
+        :returns:
+            The size x prev_size weight matrix gradient
+            and the size x 1 bias matrix gradient
+        """
         if delta.ndim == 1:
             delta = delta[:, np.newaxis]
 
@@ -231,6 +263,13 @@ class FullyConnected(Layer):
         """ Calculate the weight update
 
         .. warning:: This is a simple optimizer that doesn't work very well
+
+        :param delta:
+            The error for the current layer
+        :param learn_rate:
+            The learning rate for this update
+        :param weight_decay:
+            The weight_decay for this update
         """
         delta_weight, delta_bias = self.calc_grad(delta)
 
