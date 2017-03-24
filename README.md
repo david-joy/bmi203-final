@@ -71,19 +71,17 @@ The data and plots were generated using [plot_rap1_data.py](https://github.com/d
 
 ## Rap1 Detector
 
-Using this training dataset a 5 layer neural network was designed:
+Using this training dataset a 4 layer neural network was designed:
 
 - Input layer - 68 neurons (17 bases x 4 bits/base)
+- Hidden layer 1 - 16 neurons
     - ReLU Activation
-- Hidden layer 1 - 32 neurons
+- Hidden layer 2 - 8 neurons
     - ReLU Activation
-- Hidden layer 2 - 16 neurons
-    - ReLU Activation
-- Hidden layer 3 - 8 neurons
-    - Sigmoid Activation
 - Output layer - 1 neuron
+    - Sigmoid Activation
 
-This network accepts one-hot encoded 17-base motifs and outputs a value between 0 and 1 with 0 indicating not a Rap1 site and 1 indicating a Rap1 site with 100% confidence. The network was trained for 2500 iterations using [train_ann.py](https://github.com/david-joy/bmi203-final/blob/master/train_ann.py) resulting in the following loss profile:
+This network accepts one-hot encoded 17-base motifs and outputs a value between 0 and 1 with 0 indicating not a Rap1 site and 1 indicating a Rap1 site with 100% confidence. The network was trained for 10000 iterations using [train_ann.py](https://github.com/david-joy/bmi203-final/blob/master/train_ann.py) resulting in the following loss profile:
 
 <img src="plots/ann_rap1_loss.png"><br />
 
@@ -91,14 +89,20 @@ This training can be replicated by calling:
 
 ```bash
 python train_ann.py \
-    --seed 2426914260 \
+    --seed 333422904 \
     --learn-rate 0.001 \
-    --num-epochs 2500
+    --num-epochs 10000
 ```
 
-Training was stopped when the network reached 3% MSE on the hold out test data. It was attempted to train further, but the network error diverged due to dead neurons in the hidden layers.
+Training was stopped when the network reached minimal mean-squared error on the hold out test set (as measured by running for 1000 more iterations). Several other seeds were attempted, however some of them diverged, possibly due to floating point errors. A 0.1% error rate was deemed acceptable to continue analysis.
 
-This same training program was attempted with networks omiting either of hidden layers 1, 2, or 3.
+This same training program was attempted with networks omiting either of hidden layers 1, 2. Omitting hidden layer 1 caused the test error to diverge at 6000 iterations at 0.2% error. Omitting hidden layer 2 caused the test error to diverge around 3000 iterations at 0.3% error.
+
+Several other architectures were attempted, adding a third hidden layer with 32 or 16 neurons and a ReLU activation before hidden layer 1. These architectures diverged before reaching 2000 iterations and never dropped below 0.5% test error.
+
+Finally, the ReLU activations were systematically replaced with sigmoid activations. Sigmoid activation in hidden layer 1 reached 0.2% test error after 10000 iterations, but did not appear to have saturated. Sigmoid activation in hidden layer 2 diverged after 3000 iterations with a minimum error of 0.4%. Sigmoid activation in both hidden layers did eventually reach 0.1% test error, but took approximately 4x as long to train and evaluate.
+
+These experiments indicate that the architecture outlined above is a good system to evaluate Rap1 binding sites given the training dataset.
 
 ## Questions
 

@@ -2,6 +2,8 @@
 
 """ Train the Rap1 site detector """
 
+# Imports
+import time
 import secrets
 import pathlib
 import argparse
@@ -75,13 +77,13 @@ def train_rap1_det(learn_rate=LEARN_RATE,
     net = model.Model('Rap1 Detector',
                       input_size=68,
                       rng=rng)
-    net.add_layer(layers.FullyConnected(size=32, func='relu'))
     net.add_layer(layers.FullyConnected(size=16, func='relu'))
     net.add_layer(layers.FullyConnected(size=8, func='relu'))
     net.add_layer(layers.FullyConnected(size=1, func='sigmoid'))
     net.init_weights()
     net.set_optimizer(optimizers.Adam(learn_rate=learn_rate))
 
+    t0 = time.time()
     train_losses = []
     test_losses = []
 
@@ -99,6 +101,8 @@ def train_rap1_det(learn_rate=LEARN_RATE,
                 epoch, train_losses[-1]))
             print('           : Last test error:  {}'.format(
                 test_losses[-1]))
+
+    print('Training took {} secs'.format(time.time() - t0))
 
     print('Saving final weights...')
     net.save_weights(str(WEIGHTDIR / 'ann_rap1.npz'))
