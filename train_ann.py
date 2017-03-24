@@ -12,45 +12,19 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-from final_project import model, layers, optimizers, alignment
+from final_project import model, layers, optimizers, io
 
 # Constants
 THISDIR = pathlib.Path(__file__).resolve().parent
 WEIGHTDIR = THISDIR / 'weights'
+MODELDIR = THISDIR / 'models'
 PLOTDIR = THISDIR / 'plots'
 DATADIR = THISDIR / 'data'
 
 LEARN_RATE = 0.001
-NUM_EPOCHS = 2500
+NUM_EPOCHS = 10000
 
 # Functions
-
-
-def load_training_data(datafile):
-    """ Load the training data
-
-    Convert the sequence to a one-hot-encoding
-
-    :param datafile:
-        A CSV file of score,sequence records
-    :returns:
-        one-hot-encoded sequences, scores
-    """
-
-    scores = []
-    seqs = []
-
-    with datafile.open('rt') as fp:
-        for line in fp:
-            line = line.split('#', 1)[0].strip()
-            if line == '':
-                continue
-            score, seq = line.split(',')
-            scores.append(float(score))
-            seqs.append(alignment.recode_as_one_hot(seq).ravel())
-
-    scores = np.array(scores)[:, np.newaxis].T
-    return np.array(seqs).T, scores
 
 
 def train_rap1_det(learn_rate=LEARN_RATE,
@@ -59,8 +33,8 @@ def train_rap1_det(learn_rate=LEARN_RATE,
     """ Train a Rap1 site detector """
 
     # Training data
-    train_x, train_y = load_training_data(DATADIR / 'train_final.txt')
-    test_x, test_y = load_training_data(DATADIR / 'test_final.txt')
+    train_x, train_y = io.load_training_data(DATADIR / 'train_final.txt')
+    test_x, test_y = io.load_training_data(DATADIR / 'test_final.txt')
 
     print('X training data: {}'.format(train_x.shape))
     print('Y training data: {}'.format(train_y.shape))
@@ -103,6 +77,9 @@ def train_rap1_det(learn_rate=LEARN_RATE,
                 test_losses[-1]))
 
     print('Training took {} secs'.format(time.time() - t0))
+
+    print('Saving model spec...')
+    net.save_model(MODELDIR / 'ann_rap1.json')
 
     print('Saving final weights...')
     net.save_weights(str(WEIGHTDIR / 'ann_rap1.npz'))

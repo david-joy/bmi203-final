@@ -104,6 +104,52 @@ Finally, the ReLU activations were systematically replaced with sigmoid activati
 
 These experiments indicate that the architecture outlined above is a good system to evaluate Rap1 binding sites given the training dataset.
 
+## Evalutation
+
+To verify that the network losses behaved as expected, the following ROC curves were constructed for training:
+
+<img src="plots/roc_train_final.png"><br />
+
+And test sets:
+
+<img src="plots/roc_test_final.png"><br />
+
+To evaluate performance on a less biased dataset, the a ROC curve was also calculated between the original positive dataset (without SNPS) and 1000 17-base kmers chosen at random from the upstream yeast dataset. A typical ROC curve from this experiment is given below:
+
+<img src="plots/roc_rand_true.png"><br />
+
+All three plots give essentially perfect ROC plots, although the randomization approach is somewhat limited by the fact that it can only search 137 17-mers every iteration, which is small compared to the possible ~3.1 million 17-mers in the negative dataset.<br />
+
+As a final test, the positive examples including SNPS were compared against the random sample dataset, giving the following typical ROC curve:
+
+<img src="plots/roc_rand_final.png"><br />
+
+Again, the ROC curve is almost perfect, over several samplings. It's likely that the network has overfit the data to a fair extent, but with so few positive examples, it isn't particularly obvious how to combat this beyond the techniques already used.<br />
+
+As a final verification, the two example sequences were tested against the network:
+
+- The sample positive example "ACATCCGTGCACCATTT" scores 0.80263795
+- The sample negative example "AAAAAAACGCAACTAAT" scores 0.00412595
+
+These plots were generated with [plot_ann.py](https://github.com/david-joy/bmi203-final/blob/master/plot_ann.py)
+
+## Predictions
+
+The unlabeled test data was evaluated using [predict_ann.py](https://github.com/david-joy/bmi203-final/blob/master/predict_ann.py)
+
+```bash
+predict_ann.py \
+    data/rap1-lieb-test.txt \
+    data/rap1-lieb-pred.txt
+```
+
+The predicted scores for each sequence are in [rap1-lieb-pred.txt](https://github.com/david-joy/bmi203-final/blob/master/data/rap1-lieb-pred.txt). As a sanity check, a cutoff of 0.5 was used to verify the predictions contained both positive and negative indictations (as opposed to simply predicting all negative for example). Based on the sequences in the file:
+
+- Predicting 1482 Positives
+- Predicting 1713 Negatives
+
+A roughly balanced set of predictions gives some confidence that the detector has at least learned something useful about Rap1 sites.
+
 ## Questions
 
 1. How was your training regime designed so as to prevent the negative training data from overwhelming the positive training data? 
@@ -114,14 +160,50 @@ By focusing on training with negative examples that had strong sequence homology
 
 The stop criterion was chosen as the minimal error on the test set. Since training the network for too long caused the error to diverge, this limited the number of epochs for training to the values given above.
 
+3. What set of learning parameters works the best? Please provide sample output from your system.
+
+Altering the learning rate had drastic negative effects on training the system. With learning rates of 0.1 or 0.01, the system oscillated wildly around 50% error. A smaller learning rate was able to learn the task, but only achieved 3% test error after 10000 iterations.
+
+Beta1 was less sensitive, and the optimizer converged to the same ~0.1% error for values of 0.7, 0.8, 0.9 over the same 10000 iterations (although values >0.9 had detrimental oscillatory effects).
+
+Beta2 was very sensitive. Changing the value from the default of 0.999 to 0.99 improved the speed of convergence at first, but then resulted in oscilatory training and errors >30%. A smaller change to 0.998 converged to the same 0.1% test error after 10000 iterations.
+
+Since the default parameters produced good results when training the 8-3-8 and most Rap1 detector nets, they were used to produce the final networks.
+
+4. What are the effects of altering your system (e.g. number of hidden units or choice of kernel function)? Why do you think you observe these effects?
+
+As the number of hidden units increases, the system gains more capability to memorize the dataset, which increases its performance on the training set (errors sometimes dropped nearly to 0) but causes it to overfit on the test set. Activation functions had a mild effect on performance compared to other machine learning tasks, but had a clear impact on the time to process the dataset.
+
+5. What other parameters, if any, affect performance?
+
+The choice of optimizer was key to training the network. The naive stochastic gradient descent algorithm was unable to train the simple 8-3-8 autoencoder, but the Adam optimizer was able to train most network architectures to very low error levels, with the exception of ReLU only networks which had a tendency to have dead neurons.
+
 ## structure
 
 `model.py` contains the main neural network container class that assembles the layers found in `layers.py`. `optimizers.py` contains code to do various forms of adaptive stochastic gradient descent. `alignment.py` and the cython file `_alignment.pyx` contain the ungapped sequence alignment code. `io.py` contains tools to read the data files and write out scores. 
+
+The `weights` folder contains the final weights for the networks described above. `ann_rap1.npz` contains the weights for the Rap1 detector. The two autoencoder files contain weights for the 8-3-8 autoencoder with ReLU and Sigmoid activation functions respectively.
+
+The `models` folder contains the model descriptions for each of the networks described above, encoded as JSON dictionaries. They are named identically to the weight files. To reconstitute a network (e.g. the Rap1 detector):
+
+```python
+from final_project import model
+
+net = model.load_model('model/ann_rap1.json')
+net.load_weights('weights/ann_rap1.npz')
+```
+
+Key files in the folder layout:
 
 ```
 .
 ├── README.md
 ├── data
+├── plots
+├── weights
+│   ├── ann_rap1.npz
+│   ├── autoencoder_838_relu.npz
+│   └── autoencoder_838_sigmoid.npz
 │   ...
 ├── final_project
 │   ├── __init__.py

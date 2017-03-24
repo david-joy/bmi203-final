@@ -14,6 +14,7 @@ from final_project import model, layers, optimizers
 
 # Constants
 THISDIR = pathlib.Path(__file__).resolve().parent
+MODELDIR = THISDIR / 'models'
 WEIGHTDIR = THISDIR / 'weights'
 PLOTDIR = THISDIR / 'plots'
 
@@ -75,6 +76,10 @@ def train_autoenc(activation,
 
         if epoch % 100 == 0:
             print('Epoch: {:04d}: Last error: {}'.format(epoch, losses[-1]))
+
+    print('Saving final model...')
+    modelfile = 'autoencoder_838_{}.json'.format(activation)
+    autoenc.save_weights(str(MODELDIR / modelfile))
 
     print('Saving final weights...')
     weightfile = 'autoencoder_838_{}.npz'.format(activation)

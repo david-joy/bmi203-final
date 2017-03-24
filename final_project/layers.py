@@ -146,13 +146,19 @@ class FullyConnected(Layer):
         """
         weight = np.squeeze(weight)
         if weight.ndim != 2:
-            err = 'Expected 2D weight matrix, got {}'.format(weight.shape)
-            raise ValueError(err)
+            if self.size == 1:
+                weight = weight[np.newaxis, :]
+            else:
+                err = 'Expected 2D weight matrix, got {}'.format(weight.shape)
+                raise ValueError(err)
 
         bias = np.squeeze(bias)
         if bias.ndim != 1:
-            err = 'Expected 1D bias vector, got {}'.format(bias.shape)
-            raise ValueError(bias)
+            if self.size == 1:
+                bias = np.array([bias])
+            else:
+                err = 'Expected 1D bias vector, got {}'.format(bias.shape)
+                raise ValueError(err)
 
         if weight.shape[0] != self.size:
             err = 'Expected weight matrix {} x m, got {}'

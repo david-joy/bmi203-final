@@ -3,7 +3,38 @@
 # Imports
 import pathlib
 
+import numpy as np
+
+from . import alignment
+
 # Functions
+
+
+def load_training_data(datafile):
+    """ Load the training data
+
+    Convert the sequence to a one-hot-encoding
+
+    :param datafile:
+        A CSV file of score,sequence records
+    :returns:
+        one-hot-encoded sequences, scores
+    """
+
+    scores = []
+    seqs = []
+
+    with datafile.open('rt') as fp:
+        for line in fp:
+            line = line.split('#', 1)[0].strip()
+            if line == '':
+                continue
+            score, seq = line.split(',')
+            scores.append(float(score))
+            seqs.append(alignment.recode_as_one_hot(seq).ravel())
+
+    scores = np.array(scores)[:, np.newaxis].T
+    return np.array(seqs).T, scores
 
 
 def read_fasta_file(filepath):

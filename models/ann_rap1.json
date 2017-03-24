@@ -1,0 +1,21 @@
+{
+    "input_size": 68,
+    "layers": [
+        {
+            "func": "relu",
+            "size": 16,
+            "type": "FullyConnected"
+        },
+        {
+            "func": "relu",
+            "size": 8,
+            "type": "FullyConnected"
+        },
+        {
+            "func": "sigmoid",
+            "size": 1,
+            "type": "FullyConnected"
+        }
+    ],
+    "name": "Rap1 Detector"
+}

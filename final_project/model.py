@@ -219,3 +219,8 @@ class Model(object):
         for layer in data.get('layers', []):
             model.add_layer(layers.from_dict(layer))
         return model
+
+
+def load_model(modelfile):
+    """ Top level helper constructor """
+    return Model.load_model(modelfile)

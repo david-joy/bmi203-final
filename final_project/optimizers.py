@@ -108,8 +108,13 @@ class Adam(object):
         new_vs = []
         new_weights = []
         for w, g, m, v in zip(weights, grads, ms, vs):
+            # Momentum update
             m_t = (self.beta1 * m) + (1.0 - self.beta1) * g
+
+            # Velocity update
             v_t = (self.beta2 * v) + (1.0 - self.beta2) * g**2
+
+            # Update the weights
             w_t = w - learn_rate_t * m_t / (np.sqrt(v_t) + 1e-8)
 
             new_ms.append(m_t)

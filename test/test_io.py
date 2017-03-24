@@ -16,6 +16,8 @@ NEGATIVE_FA_FILE = DATADIR / 'yeast-upstream-1k-negative.fa'
 # Filepath, number of records
 EXAMPLE_FILES = [(DATADIR / 'rap1-lieb-positives.txt', 137),
                  (DATADIR / 'rap1-lieb-test.txt', 3195)]
+FINAL_DATA = [(DATADIR / 'train_final.txt', 12824),
+              (DATADIR / 'test_final.txt', 1424)]
 
 # Tests
 
@@ -79,3 +81,12 @@ def test_write_score_file():
         res_records = io.read_score_file(scorefile)
 
         assert res_records == records
+
+
+@pytest.mark.parametrize('filepath,num_recs', FINAL_DATA)
+def test_load_training_data(filepath, num_recs):
+
+    res_x, res_y = io.load_training_data(filepath)
+
+    assert res_x.shape == (68, num_recs)
+    assert res_y.shape == (1, num_recs)
